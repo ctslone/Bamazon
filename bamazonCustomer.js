@@ -20,13 +20,14 @@ connection.connect(function (err) {
   // then, do stuff
   showAll();
   // promptUser();
-  connection.end()
+  // connection.end()
 });
 
 function showAll() {
   connection.query("SELECT * FROM products", function (err, results) {
     if (err) throw err;
     console.table(results)
+    promptUser()
     // connection.end()
   })
 }
@@ -38,10 +39,16 @@ function promptUser() {
       name: "userID",
       message: "Enter the ID of the item you would like to buy.",
     },
+    {
+      type: "input",
+      name: "howMany",
+      message: "How many do you want to buy?",
+    }
   ])
     .then(function (response) {
       if (response) {
         console.log(response)
+        connection.end()
       }
     })
 }
