@@ -1,5 +1,6 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
+var table = require("console.table")
 
 // create the connection for DB
 var connection = mysql.createConnection({
@@ -14,16 +15,33 @@ var connection = mysql.createConnection({
 });
 
 // connect to the mysql server and sql database
-connection.connect(function(err) {
-    if (err) throw err;
-    // then, do stuff
-    showAll();
+connection.connect(function (err) {
+  if (err) throw err;
+  // then, do stuff
+  showAll();
+  // promptUser();
+  connection.end()
 });
 
 function showAll() {
-  connection.query("SELECT * FROM products", function(err, results) {
+  connection.query("SELECT * FROM products", function (err, results) {
     if (err) throw err;
     console.table(results)
-    connection.end()
-})
+    // connection.end()
+  })
+}
+
+function promptUser() {
+  inquirer.prompt([
+    {
+      type: "input",
+      name: "userID",
+      message: "Enter the ID of the item you would like to buy.",
+    },
+  ])
+    .then(function (response) {
+      if (response) {
+        console.log(response)
+      }
+    })
 }
