@@ -1,3 +1,11 @@
+/*POSSIBLE ADDITIONS
+Not allow negative numbers for any entry.
+Not allow letters in any entry.
+Add a confirmation before the order is placed.
+*/
+
+
+// dependencies
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 var table = require("console.table")
@@ -18,18 +26,18 @@ var connection = mysql.createConnection({
 connection.connect(function (err) {
   if (err) throw err;
   showAll();
-  // connection.end()
 });
 
+// listing all items in the DB
 function showAll() {
   connection.query("SELECT * FROM products", function (err, results) {
     if (err) throw err;
-    console.table(results)
-    promptUser()
-    // connection.end()
+    console.table(results);
+    promptUser();
   })
 }
 
+// function that contains all logic
 function promptUser() {
 
   inquirer.prompt([
@@ -39,11 +47,9 @@ function promptUser() {
       message: "Enter the ID of the item you would like to buy.",
     },
   ])
+  // asking user how many items they want
     .then(function (responseID) {
-      // if (response) {
-      //   console.log(response)
-      //   connection.end()
-      // }
+      // assigning the response to a shorter variable
       var userItemID = responseID.userID
       inquirer.prompt([
         {
@@ -53,22 +59,22 @@ function promptUser() {
         }
       ])
         .then(function (responseQuantity) {
+          // assigning the response to a shorter variable
           userQuantity = responseQuantity.howMany
-          
+          // checks the stock of the item requested and determines if a sale can be made
           function checkStock() {
             connection.query("SELECT * FROM products", function (err, results) {
               if (err) throw err;
-              console.log("inside")
+              // setting a variable to use in the for loop, based on the users item slection. The index is one less than the actual item number
               var userItemIndex = (userItemID - 1)
-
+              // if statement for if there is enough stock to fulfill the order
               if (results[userItemIndex].stock_quantity >= userQuantity) {
                 console.log("Thanks for your order!");
-                
-
-                updateStock = results[userItemIndex].stock_quantity -= userQuantity;
+                // creating an updated stock to place in the DB
+                var updateStock = results[userItemIndex].stock_quantity -= userQuantity;
 
                 console.log("The total cost of your order is $" + (updateStock * results[userItemIndex].price));
-
+                // updating the DB based on the order
                 connection.query(
                   "UPDATE products SET ? WHERE ?",
                   [
@@ -81,30 +87,18 @@ function promptUser() {
                   ],
                   function (err, res) {
                     if (err) throw err;
-                  })
-                
+                  }
+                )
               }
               else {
                 console.log("There is not enough to fulfill your order! Please edit your order to be less.")
                 promptUser()
               }
-              // for (var i = 0; i < results.length; i++) {
-              // console.log(results[3].item_id)
-              // console.log(response.howMany)
-              // console.log("This is the user item ID " + userItemID)
-              // console.log("The item ID is " + results[i].item_id + " and the quantity is " + results[i].stock_quantity)
-              // if (results[i].item_id === userItemID) {
-              //   console.log("Stock quantity is: " + results[i].stock_quanity)
-              // }
-
-              // if (results[i].item_id == userItemID) {
-              //   console.log("we have that")
-              //   console.log(results[userItemIndex].stock_quantity)
-              // }
-              // }
+              // ending the connection after the purchase
               connection.end()
             })
           }
+          // invoke checkstock function
           checkStock()
         })
     })
