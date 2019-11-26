@@ -41,14 +41,15 @@ function prompt () {
             
                 break;
                 case 'Add to Inventory':
-                    
+                addInventory();
             
                 break;
                 case 'Add New Product':
-            
+                addProduct();
+
                 break;
             }
-            connection.end()
+            // connection.end()
         })
 }
 
@@ -78,6 +79,73 @@ function lowInventory () {
 
 // add to inventory
 function addInventory () {
-    
+
+    connection.query("SELECT item_id, product_name, price, stock_quantity FROM products", function (err, results) {
+        if (err) throw err;
+        console.table(results);
+        inquirer.prompt([
+            {
+                type: "input",
+                name: "managerID",
+                message: "Enter the ID of the item you would like to buy."
+            },
+            {
+                type: "input",
+                name: "managerAmount",
+                message: "How many would you like to add?"
+            }
+          ])
+            .then(function (stockAction) {
+                var managerSelection = +(stockAction.managerID);
+                var managerQuantity = +(stockAction.managerAmount) + +(results[managerSelection-1].stock_quantity);
+                
+                connection.query(
+                    "UPDATE products SET ? WHERE ?",
+                    [
+                      {
+                        stock_quantity: managerQuantity
+                      },
+                      {
+                        item_id: managerSelection
+                      }
+                    ],
+                    function (err, res) {
+                      if (err) throw err;
+                    }
+                  )
+                  connection.end()
+            })
+    })
+}
+
+function addProduct () {
+inquirer.prompt([
+            {
+                type: "input",
+                name: "newID",
+                message: "Enter the ID number."
+            },
+            {
+                type: "input",
+                name: "newName",
+                message: "Enter the product name."
+            },
+            {
+                type: "input",
+                name: "newDepartment",
+                message: "Enter the department."
+            },
+            {
+                type: "input",
+                name: "newPrice",
+                message: "Enter the price."
+            },
+            {
+                type: "input",
+                name: "newStock",
+                message: "Enter the stock."
+            },
+          ])
+            .then(function (newProduct) {})
 }
 
