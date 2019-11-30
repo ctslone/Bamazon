@@ -105,26 +105,24 @@ function addInventory() {
             }
         ])
             .then(function (stockAction) {
-                var managerSelection = +(stockAction.managerID);
+                var managerSelection = (stockAction.managerID);
                 var managerQuantity = +(stockAction.managerAmount) + +(results[managerSelection - 1].stock_quantity);
-
-                connection.query(
-                    "UPDATE products SET ? WHERE ?",
-                    [
-                        {
-                            stock_quantity: managerQuantity
-                        },
-                        {
-                            item_id: managerSelection
+                    connection.query(
+                        "UPDATE products SET ? WHERE ?",
+                        [
+                            {
+                                stock_quantity: managerQuantity
+                            },
+                            {
+                                item_id: managerSelection
+                            }
+                        ],
+                        function (err, res) {
+                            if (err) throw err;
+                            console.log("----------" + "\nInventory successfully updated!" + "\n----------");
+                            prompt();
                         }
-                    ],
-                    function (err, res) {
-                        if (err) throw err;
-                        console.log("----------" + "\nInventory successfully updated!" + "\n----------");
-                        prompt();
-                    }
-                )
-                
+                    )
             })
     })
     
@@ -159,22 +157,29 @@ function addProduct() {
             var newProductPrice = newProduct.newPrice;
             var newProductStock = newProduct.newStock;
 
-            connection.query(
-                "INSERT INTO products SET ?",
-                {
-                    product_name: newProductName,
-                    department_name: newProductDepartment,
-                    price: newProductPrice,
-                    stock_quantity: newProductStock
-                },
-                function (err, res) {
-                    if (err) throw err;
-                    console.log(res.affectedRows + " product inserted!\n");
-                    prompt();
-                }
-            );
+            var priceNum = /^[1-9]\d*$/.test(newProductPrice);
+            var stockNum = /^[1-9]\d*$/.test(newProductStock);
 
-
+            if (priceNum && stockNum) {
+                connection.query(
+                    "INSERT INTO products SET ?",
+                    {
+                        product_name: newProductName,
+                        department_name: newProductDepartment,
+                        price: newProductPrice,
+                        stock_quantity: newProductStock
+                    },
+                    function (err, res) {
+                        if (err) throw err;
+                        console.log("----------" + res.affectedRows + " product inserted!\n");
+                        prompt();
+                    }
+                );
+            }
+            else {
+                console.log("You must enter a valid number!")
+                addProduct();
+            }
         })
 }
 

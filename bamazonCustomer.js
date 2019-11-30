@@ -1,6 +1,6 @@
 /*POSSIBLE ADDITIONS
-Not allow negative numbers for any entry.
-Not allow letters in any entry.
+Not allow negative numbers for any entry. DONE
+Not allow letters in any entry. DONE
 Add a confirmation before the order is placed.
 */
 
