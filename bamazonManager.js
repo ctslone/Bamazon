@@ -20,36 +20,39 @@ connection.connect(function (err) {
     prompt();
 });
 
-function prompt () {
+function prompt() {
     inquirer.prompt([
         {
             type: "checkbox",
             name: "managerAction",
             message: "Welcome! What would you like to do?",
-            choices: ["View Products for Sale", "View Low Inventory", "Add to Inventory", "Add New Product"],
+            choices: ["View Products for Sale", "View Low Inventory", "Add to Inventory", "Add New Product", "Exit"],
         },
-      ])
+    ])
         .then(function (chosenAction) {
             var action = chosenAction.managerAction.toString();
             switch (action) {
                 case 'View Products for Sale':
-                showAll() ;
-            
-                break;
-                case 'View Low Inventory':
-                lowInventory();
-            
-                break;
-                case 'Add to Inventory':
-                addInventory();
-            
-                break;
-                case 'Add New Product':
-                addProduct();
+                    showAll();
 
-                break;
+                    break;
+                case 'View Low Inventory':
+                    lowInventory();
+
+                    break;
+                case 'Add to Inventory':
+                    addInventory();
+
+                    break;
+                case 'Add New Product':
+                    addProduct();
+
+                    break;
+                case 'Exit':
+                    connection.end()
+                    break;
             }
-            // connection.end()
+            
         })
 }
 
@@ -65,20 +68,26 @@ function showAll() {
 // need to loop through all the inventory and check to see which item ids have stock_quantity of less than 5 units
 // need to then display only the items that match that criteria (how to only display select ones?) GOT IT
 // how to display the results as a neater table that matches the DB table, not keys/values???
-function lowInventory () {
+function lowInventory() {
     connection.query("SELECT item_id, product_name, price, stock_quantity FROM products", function (err, results) {
         if (err) throw err;
         // console.table(results);
-        for (var i=0; i<results.length; i++) {
+        var lowItems =  false;
+        for (var i = 0; i < results.length; i++) {
             if (results[i].stock_quantity < 5) {
                 console.table(results[i])
+                lowItems = true;
             }
         }
+        if (!lowItems) {
+            console.log("----------" + "\nAll inventory has 5 units or more in stock!" + "\n----------")
+        }
+        prompt()
     })
 }
 
 // add to inventory
-function addInventory () {
+function addInventory() {
 
     connection.query("SELECT item_id, product_name, price, stock_quantity FROM products", function (err, results) {
         if (err) throw err;
@@ -87,65 +96,85 @@ function addInventory () {
             {
                 type: "input",
                 name: "managerID",
-                message: "Enter the ID of the item you would like to buy."
+                message: "Enter the ID of the item you would like to update."
             },
             {
                 type: "input",
                 name: "managerAmount",
                 message: "How many would you like to add?"
             }
-          ])
+        ])
             .then(function (stockAction) {
                 var managerSelection = +(stockAction.managerID);
-                var managerQuantity = +(stockAction.managerAmount) + +(results[managerSelection-1].stock_quantity);
-                
+                var managerQuantity = +(stockAction.managerAmount) + +(results[managerSelection - 1].stock_quantity);
+
                 connection.query(
                     "UPDATE products SET ? WHERE ?",
                     [
-                      {
-                        stock_quantity: managerQuantity
-                      },
-                      {
-                        item_id: managerSelection
-                      }
+                        {
+                            stock_quantity: managerQuantity
+                        },
+                        {
+                            item_id: managerSelection
+                        }
                     ],
                     function (err, res) {
-                      if (err) throw err;
+                        if (err) throw err;
+                        console.log("----------" + "\nInventory successfully updated!" + "\n----------");
+                        prompt();
                     }
-                  )
-                  connection.end()
+                )
+                
             })
     })
+    
 }
 
-function addProduct () {
-inquirer.prompt([
-            {
-                type: "input",
-                name: "newID",
-                message: "Enter the ID number."
-            },
-            {
-                type: "input",
-                name: "newName",
-                message: "Enter the product name."
-            },
-            {
-                type: "input",
-                name: "newDepartment",
-                message: "Enter the department."
-            },
-            {
-                type: "input",
-                name: "newPrice",
-                message: "Enter the price."
-            },
-            {
-                type: "input",
-                name: "newStock",
-                message: "Enter the stock."
-            },
-          ])
-            .then(function (newProduct) {})
+function addProduct() {
+    inquirer.prompt([
+        {
+            type: "input",
+            name: "newName",
+            message: "Enter the product name."
+        },
+        {
+            type: "input",
+            name: "newDepartment",
+            message: "Enter the department."
+        },
+        {
+            type: "input",
+            name: "newPrice",
+            message: "Enter the price."
+        },
+        {
+            type: "input",
+            name: "newStock",
+            message: "Enter the stock."
+        },
+    ])
+        .then(function (newProduct) {
+            var newProductName = newProduct.newName;
+            var newProductDepartment = newProduct.newDepartment;
+            var newProductPrice = newProduct.newPrice;
+            var newProductStock = newProduct.newStock;
+
+            connection.query(
+                "INSERT INTO products SET ?",
+                {
+                    product_name: newProductName,
+                    department_name: newProductDepartment,
+                    price: newProductPrice,
+                    stock_quantity: newProductStock
+                },
+                function (err, res) {
+                    if (err) throw err;
+                    console.log(res.affectedRows + " product inserted!\n");
+                    prompt();
+                }
+            );
+
+
+        })
 }
 
