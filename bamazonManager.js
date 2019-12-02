@@ -19,7 +19,7 @@ connection.connect(function (err) {
     if (err) throw err;
     prompt();
 });
-
+// asking which task the manager would like to do
 function prompt() {
     inquirer.prompt([
         {
@@ -29,6 +29,7 @@ function prompt() {
             choices: ["View Products for Sale", "View Low Inventory", "Add to Inventory", "Add New Product", "Exit"],
         },
     ])
+    // switch that determines what each response does
         .then(function (chosenAction) {
             var action = chosenAction.managerAction.toString();
             switch (action) {
@@ -65,20 +66,20 @@ function showAll() {
     })
 }
 // showing all low invetory less than 5 units
-// need to loop through all the inventory and check to see which item ids have stock_quantity of less than 5 units
-// need to then display only the items that match that criteria (how to only display select ones?) GOT IT
-// how to display the results as a neater table that matches the DB table, not keys/values???
+// loop through all the inventory and check to see which item ids have stock_quantity of less than 5 units
 function lowInventory() {
     connection.query("SELECT item_id, product_name, price, stock_quantity FROM products", function (err, results) {
         if (err) throw err;
-        // console.table(results);
+        // default of no low products
         var lowItems =  false;
+        // if there is a low product, show it anf change lowitems to true
         for (var i = 0; i < results.length; i++) {
             if (results[i].stock_quantity < 5) {
                 console.table(results[i])
                 lowItems = true;
             }
         }
+        // if lowitems is still false, show this message
         if (!lowItems) {
             console.log("----------" + "\nAll inventory has 5 units or more in stock!" + "\n----------")
         }
@@ -88,9 +89,10 @@ function lowInventory() {
 
 // add to inventory
 function addInventory() {
-
+    // pulling desired products from the DB
     connection.query("SELECT item_id, product_name, price, stock_quantity FROM products", function (err, results) {
         if (err) throw err;
+        // logging results as a table
         console.table(results);
         inquirer.prompt([
             {
@@ -104,7 +106,9 @@ function addInventory() {
                 message: "How many would you like to add?"
             }
         ])
+            // updating the DB
             .then(function (stockAction) {
+                // defining variables to update the DB with
                 var managerSelection = (stockAction.managerID);
                 var managerQuantity = +(stockAction.managerAmount) + +(results[managerSelection - 1].stock_quantity);
                     connection.query(
@@ -117,6 +121,7 @@ function addInventory() {
                                 item_id: managerSelection
                             }
                         ],
+                        // logging success message
                         function (err, res) {
                             if (err) throw err;
                             console.log("----------" + "\nInventory successfully updated!" + "\n----------");
@@ -127,7 +132,7 @@ function addInventory() {
     })
     
 }
-
+// adding a product to Bamazon
 function addProduct() {
     inquirer.prompt([
         {
@@ -152,14 +157,15 @@ function addProduct() {
         },
     ])
         .then(function (newProduct) {
+            // responses saved as variables
             var newProductName = newProduct.newName;
             var newProductDepartment = newProduct.newDepartment;
             var newProductPrice = newProduct.newPrice;
             var newProductStock = newProduct.newStock;
-
+            // regex validation 
             var priceNum = /^[1-9]\d*$/.test(newProductPrice);
             var stockNum = /^[1-9]\d*$/.test(newProductStock);
-
+            // checking the validation to see if the manager entered correct values
             if (priceNum && stockNum) {
                 connection.query(
                     "INSERT INTO products SET ?",

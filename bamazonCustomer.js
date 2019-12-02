@@ -34,7 +34,11 @@ function showAll() {
     if (err) throw err;
     console.table(results);
     promptUser();
+    // ending the connection after the purchase
+    // connection.end()
   })
+  // ending the connection after the purchase
+  // connection.end()
 }
 
 // function that contains all logic
@@ -65,7 +69,7 @@ function promptUser() {
             // assigning the response to a shorter variable
             userQuantity = responseQuantity.howMany
             var onlyNumbersQuant = /^[1-9]\d*$/.test(userQuantity)
-            console.log(onlyNumbersQuant)
+            // console.log(onlyNumbersQuant)
             // checks the stock of the item requested and determines if a sale can be made
             if (onlyNumbersQuant) {
               function checkStock() {
@@ -79,8 +83,9 @@ function promptUser() {
                     // creating an updated stock to place in the DB
                     var updateStock = results[userItemIndex].stock_quantity -= userQuantity;
 
-                    console.log("The total cost of your order is $" + (updateStock * results[userItemIndex].price));
+                    console.log("The total cost of your order is $" + (userQuantity * results[userItemIndex].price));
                     // updating the DB based on the order
+                    
                     connection.query(
                       "UPDATE products SET ? WHERE ?",
                       [
@@ -95,13 +100,14 @@ function promptUser() {
                         if (err) throw err;
                       }
                     )
+                    anythingElse()
                   }
                   else {
                     console.log("There is not enough to fulfill your order! Please edit your order to be less.")
+                    updateStock = 0;
                     promptUser()
                   }
-                  // ending the connection after the purchase
-                  connection.end()
+                  
                 })
               }
               // invoke checkstock function
@@ -110,6 +116,7 @@ function promptUser() {
             // if user doesnt enter a positive number
             else {
               console.log("Please enter the ID as a positive number!")
+              updateStock = 0;
               promptUser()
             }
           })
@@ -117,10 +124,35 @@ function promptUser() {
       // if user doesnt enter positive number
       else {
         console.log("Please enter the ID as a positive number!")
+        updateStock = 0;
         promptUser()
       }
 
     })
+    // asking user if they want anything else
+    function anythingElse() {
+      inquirer.prompt([
+        {
+          type: "confirm",
+          name: "stayorgo",
+          message: "Do you want to buy anything else?",
+        }
+      ])
+        .then(function (finalPurchase) {
+          // if yes, ask them to enter what they want by using promptUser. If not, end the connection
+          if (finalPurchase.stayorgo) {
+            promptUser()
+          }
+          else {
+            console.log("Thank you come again!")
+            connection.end()
+          }
+        })
+    }
+    
+    
 }
+
+
 
 
