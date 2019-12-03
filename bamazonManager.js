@@ -72,7 +72,7 @@ function lowInventory() {
         if (err) throw err;
         // default of no low products
         var lowItems =  false;
-        // if there is a low product, show it anf change lowitems to true
+        // if there is a low product, show it and change lowitems to true
         for (var i = 0; i < results.length; i++) {
             if (results[i].stock_quantity < 5) {
                 console.table(results[i])

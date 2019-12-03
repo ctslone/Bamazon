@@ -34,11 +34,7 @@ function showAll() {
     if (err) throw err;
     console.table(results);
     promptUser();
-    // ending the connection after the purchase
-    // connection.end()
   })
-  // ending the connection after the purchase
-  // connection.end()
 }
 
 // function that contains all logic
